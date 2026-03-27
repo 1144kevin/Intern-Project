@@ -5,6 +5,9 @@ import Detail from "./pages/detail/detail";
 import Favorite from "./pages/favorite/favorite";
 import Add from "./pages/add/add";
 import Update from "./pages/update/update";
+import Login from "./pages/login/login";
+import Register from "./pages/register/register";
+import ProtectedRoute from "./components/ProtectedRoute/protectedRoute";
 
 export default function Router() {
 
@@ -26,14 +29,37 @@ export default function Router() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/favorite" element={<Favorite />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="favorite">
           <Route path="detail/id/:dataId" element={<Detail />} />
-          <Route path="detail/id/:dataId/update" element={<Update />} />
+          <Route
+            path="detail/id/:dataId/update"
+            element={
+              <ProtectedRoute>
+                <Update />
+              </ProtectedRoute>
+            }
+          />
         </Route>
-        <Route path="/add" element={<Add />} />
+        <Route
+          path="/add"
+          element={
+            <ProtectedRoute>
+              <Add />
+            </ProtectedRoute>
+          }
+        />
         <Route path="detail">
           <Route path="id/:dataId" element={<Detail />} />
-          <Route path="id/:dataId/update" element={<Update />} />
+          <Route
+            path="id/:dataId/update"
+            element={
+              <ProtectedRoute>
+                <Update />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

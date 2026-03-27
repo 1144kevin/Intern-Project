@@ -2,47 +2,43 @@ import React, { useEffect, useState } from "react";
 import Layout from "../../Layout";
 import { message } from "antd";
 import "./update.scss";
-import { getBookData, updateBookData } from "../../api/api";
+import { getBookById, updateBookData } from "../../api/api";
 import { useParams, useNavigate } from "react-router-dom";
 import BookForm from "../../components/BookForm/bookForm";
+import { useAuth } from "../../context/authContext";
+import { projectDataType } from "../../assets/data";
 
 // Define a type for the book data
-type Book = {
-  userId: number;
-  id: string;
-  image: string;
-  title: string;
-  body: string;
-};
-
 const Update = () => {
   const { dataId } = useParams();
-  const [data, setData] = useState<Book[]>([]);
+  const [book, setBook] = useState<projectDataType | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
-    getBookData().then(setData);
-  }, []);
-
-  const bookToUpdate = data.find((y) => y.id === dataId);
+    if (!dataId) return;
+    getBookById(dataId).then(setBook);
+  }, [dataId]);
 
   const [formData, setFormData] = useState({
-    userId: bookToUpdate?.userId || 1,
-    id: bookToUpdate?.id || "",
-    image: bookToUpdate?.image || "",
-    title: bookToUpdate?.title || "",
-    body: bookToUpdate?.body || "",
+    user_id: book?.user_id || "",
+    id: book?.id || "",
+    image: book?.image || "",
+    title: book?.title || "",
+    body: book?.body || "",
   });
 
   useEffect(() => {
+    if (!book) return;
+
     setFormData({
-      userId: bookToUpdate?.userId || 1,
-      id: bookToUpdate?.id || "",
-      image: bookToUpdate?.image || "",
-      title: bookToUpdate?.title || "",
-      body: bookToUpdate?.body || "",
+      user_id: book.user_id,
+      id: book.id || "",
+      image: book.image || "",
+      title: book.title || "",
+      body: book.body || "",
     });
-  }, [bookToUpdate]);
+  }, [book]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -51,6 +47,16 @@ const Update = () => {
   };
 
   const handleSubmit = () => {
+    if (!user) {
+      message.error("請先登入");
+      return;
+    }
+
+    if (book?.user_id !== user.id) {
+      message.error("你沒有權限更新這筆資料");
+      return;
+    }
+
     if (formData.title && formData.body) {
       updateBookData(formData).then(()=>{
         message.success("更新成功");

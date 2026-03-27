@@ -3,11 +3,14 @@ import './App.scss';
 import { Provider as ReduxProvider } from 'react-redux';
 import store from '../src/redux/store';
 import Router from './router';
+import { AuthProvider } from './context/authContext';
 
 const App = () => {
   return (
       <ReduxProvider store={store}>
-        <Router />
+        <AuthProvider>
+          <Router />
+        </AuthProvider>
       </ReduxProvider>
   );
 }

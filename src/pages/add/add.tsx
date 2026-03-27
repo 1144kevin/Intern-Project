@@ -6,19 +6,19 @@ import { addBookData } from "../../api/api";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import BookForm from "../../components/BookForm/bookForm";
+import { useAuth } from "../../context/authContext";
 
 function Add() {
   const [formData, setFormData] = useState({
-    userId: 1,
+    user_id: "",
     id: "",
     image: "",
     title: "",
     body: "",
-    comment: "",
-    totalRating: 0,
   });
 
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -45,14 +45,31 @@ function Add() {
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!user) {
+      message.error("請先登入");
+      return;
+    }
+
+    if (!formData.title || !formData.body) {
+      message.error("請先填寫完整資料");
+      return;
+    }
+
     const request = {
       ...formData,
+      user_id: user.id,
       id: uuidv4(),
     };
-    addBookData(request);
-    message.success("新增成功");
-    navigate(`/`);
+
+    try {
+      await addBookData(request);
+      message.success("新增成功");
+      navigate(`/`);
+    } catch (error) {
+      console.error("新增失敗:", error);
+      message.error("新增失敗，請稍後再試");
+    }
   };
 
   return (
