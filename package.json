@@ -2,6 +2,9 @@
   "name": "online-library",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "@ant-design/icons": "^5.4.0",
     "@reduxjs/toolkit": "^2.2.7",
@@ -59,6 +62,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/lodash": "^4.17.13",
     "concurrently": "^9.0.1",
     "json-server": "^0.17.4",
