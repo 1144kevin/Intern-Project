@@ -53,11 +53,7 @@ export default function Router() {
         />
         <Route
           path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
+          element={<Profile />}
         />
         <Route path="detail">
           <Route path="id/:dataId" element={<Detail />} />

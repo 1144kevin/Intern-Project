@@ -5,7 +5,6 @@ import { useLocation, NavLink } from "react-router-dom";
 import "./navBar.scss";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import { useAuth } from "../../context/authContext";
 
 type MenuItem = Required<MenuProps>["items"][number];
 
@@ -13,9 +12,8 @@ const NavBar: React.FC = () => {
   const location = useLocation();
   const [current, setCurrent] = useState(location.pathname);
   const isDarkMode = useSelector((state: RootState) => state.theme.isDarkMode); // Get the theme state
-  const { user } = useAuth();
   const items: MenuItem[] = useMemo(() => {
-    const baseItems: MenuItem[] = [
+    return [
       {
         label: <NavLink to="/">首頁</NavLink>,
         key: "/",
@@ -28,17 +26,12 @@ const NavBar: React.FC = () => {
         label: <NavLink to="/add">新增</NavLink>,
         key: "/add",
       },
-    ];
-
-    if (user) {
-      baseItems.push({
+      {
         label: <NavLink to="/profile">設定</NavLink>,
         key: "/profile",
-      });
-    }
-
-    return baseItems;
-  }, [user]);
+      },
+    ];
+  }, []);
 
   const onClick: MenuProps["onClick"] = (e) => {
     console.log("click ", e);

@@ -20,3 +20,17 @@
     color: #000;
   }
 }
+
+.comment-login-btn.ant-btn[disabled].comment-login-btn--dark {
+  color: #fff !important;
+  border-color: #fff !important;
+  background-color: transparent !important;
+  opacity: 1;
+}
+
+.comment-login-btn.ant-btn[disabled].comment-login-btn--light {
+  color: #000 !important;
+  border-color: #000 !important;
+  background-color: transparent !important;
+  opacity: 1;
+}

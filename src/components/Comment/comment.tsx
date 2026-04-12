@@ -202,10 +202,19 @@ function Comment({
 							/>
 						</div>
 						{!user ? (
-							<Button disabled>Login to comment</Button>
+							<Button
+								disabled
+								className={
+									isDarkMode
+										? 'comment-login-btn comment-login-btn--dark'
+										: 'comment-login-btn comment-login-btn--light'
+								}
+							>
+								請先登入後留言
+							</Button>
 						) : editingCommentId ? (
 							<Button type="primary" onClick={() => handleSaveEdit(editingCommentId)}>
-								Save
+								儲存
 							</Button>
 						) : (
 							<Button
@@ -213,7 +222,7 @@ function Comment({
 								htmlType="submit"
 								onClick={handleAddComment}
 							>
-								Submit
+								送出
 							</Button>
 						)}
 					</Col>

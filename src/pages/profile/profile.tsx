@@ -88,41 +88,58 @@ function Profile() {
 		<Layout>
 			<Row justify="center" className="profilePage">
 				<Col xs={22} sm={18} md={14} lg={10}>
-					<Card title="個人檔案">
-						<Typography.Text>姓名</Typography.Text>
-						<Input
-							value={username}
-							onChange={(e) => setUsername(e.target.value)}
-							disabled={!isEditing}
-							placeholder="按「修改名字」後可編輯，完成後按「確認修改」"
-							style={{ marginTop: 8 }}
-						/>
-						<Typography.Paragraph type="secondary" style={{ marginTop: 8 }}>
-							先按「修改名字」進入編輯，再按「確認修改」儲存。
-						</Typography.Paragraph>
-						<Alert
-							type="info"
-							showIcon
-							message={`登入帳號：${user?.email || ''}`}
-							style={{ marginBottom: '1rem' }}
-						/>
-						<Space>
-							<Button type="default" onClick={() => setIsEditing(true)}>
-								修改名字
-							</Button>
-							<Button
-								type="primary"
-								onClick={handleSave}
-								loading={saving}
+					{!user ? (
+						<Card title="個人檔案">
+							<Alert
+								type="info"
+								showIcon
+								message="你目前尚未登入，請先登入後管理個人檔案。"
+								style={{ marginBottom: '1rem' }}
+							/>
+							<Space>
+								<Button type="primary" onClick={() => navigate('/login')}>
+									前往登入
+								</Button>
+								<Button onClick={() => navigate('/register')}>註冊帳號</Button>
+							</Space>
+						</Card>
+					) : (
+						<Card title="個人檔案">
+							<Typography.Text>姓名</Typography.Text>
+							<Input
+								value={username}
+								onChange={(e) => setUsername(e.target.value)}
 								disabled={!isEditing}
-							>
-								確認修改
-							</Button>
-							<Button danger onClick={handleLogout} loading={loggingOut}>
-								登出
-							</Button>
-						</Space>
-					</Card>
+								placeholder="按「修改名字」後可編輯，完成後按「確認修改」"
+								style={{ marginTop: 8 }}
+							/>
+							<Typography.Paragraph type="secondary" style={{ marginTop: 8 }}>
+								先按「修改名字」進入編輯，再按「確認修改」儲存。
+							</Typography.Paragraph>
+							<Alert
+								type="info"
+								showIcon
+								message={`登入帳號：${user.email || ''}`}
+								style={{ marginBottom: '1rem' }}
+							/>
+							<Space>
+								<Button type="default" onClick={() => setIsEditing(true)}>
+									修改名字
+								</Button>
+								<Button
+									type="primary"
+									onClick={handleSave}
+									loading={saving}
+									disabled={!isEditing}
+								>
+									確認修改
+								</Button>
+								<Button danger onClick={handleLogout} loading={loggingOut}>
+									登出
+								</Button>
+							</Space>
+						</Card>
+					)}
 				</Col>
 			</Row>
 		</Layout>

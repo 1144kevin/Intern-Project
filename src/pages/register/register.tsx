@@ -73,7 +73,7 @@ function Register() {
 							</Form.Item>
 							<Form.Item style={{ marginBottom: 0 }}>
 								<Button type="primary" htmlType="submit" loading={submitting} block>
-									Register
+									註冊
 								</Button>
 							</Form.Item>
 						</Form>

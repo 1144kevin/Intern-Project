@@ -69,7 +69,7 @@ function Login() {
 							/>
 							<Form.Item style={{ marginBottom: 0 }}>
 								<Button type="primary" htmlType="submit" loading={submitting} block>
-									Login
+									登入
 								</Button>
 							</Form.Item>
 						</Form>
