@@ -31,15 +31,26 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_user();
 
+create table if not exists public.sections (
+	id uuid primary key default gen_random_uuid(),
+	name text not null unique,
+	created_by uuid references auth.users(id) on delete set null,
+	created_at timestamptz not null default now()
+);
+
 create table if not exists public.projects (
 	id uuid primary key default gen_random_uuid(),
 	user_id uuid not null references auth.users(id) on delete cascade,
+	section_id uuid references public.sections(id) on delete set null,
 	title text not null,
 	body text not null,
 	image text not null,
 	created_at timestamptz not null default now(),
 	updated_at timestamptz not null default now()
 );
+
+alter table public.projects
+add column if not exists section_id uuid references public.sections(id) on delete set null;
 
 create table if not exists public.comments (
 	id uuid primary key default gen_random_uuid(),
@@ -53,12 +64,17 @@ create table if not exists public.comments (
 );
 
 alter table public.profiles enable row level security;
+alter table public.sections enable row level security;
 alter table public.projects enable row level security;
 alter table public.comments enable row level security;
 
 drop policy if exists "profiles are readable by everyone" on public.profiles;
 drop policy if exists "users can insert own profile" on public.profiles;
 drop policy if exists "users can update own profile" on public.profiles;
+drop policy if exists "sections are readable by everyone" on public.sections;
+drop policy if exists "authenticated users can create sections" on public.sections;
+drop policy if exists "section owners can update sections" on public.sections;
+drop policy if exists "section owners can delete sections" on public.sections;
 drop policy if exists "projects are readable by everyone" on public.projects;
 drop policy if exists "authenticated users can create projects" on public.projects;
 drop policy if exists "owners can update projects" on public.projects;
@@ -73,10 +89,37 @@ on public.profiles for select
 to authenticated, anon
 using (true);
 
+create policy "users can insert own profile"
+on public.profiles for insert
+to authenticated
+with check (auth.uid() = id);
+
 create policy "users can update own profile"
 on public.profiles for update
 to authenticated
-using (auth.uid() = id);
+using (auth.uid() = id)
+with check (auth.uid() = id);
+
+create policy "sections are readable by everyone"
+on public.sections for select
+to authenticated, anon
+using (true);
+
+create policy "authenticated users can create sections"
+on public.sections for insert
+to authenticated
+with check (auth.uid() = created_by);
+
+create policy "section owners can update sections"
+on public.sections for update
+to authenticated
+using (auth.uid() = created_by)
+with check (auth.uid() = created_by);
+
+create policy "section owners can delete sections"
+on public.sections for delete
+to authenticated
+using (auth.uid() = created_by);
 
 create policy "projects are readable by everyone"
 on public.projects for select

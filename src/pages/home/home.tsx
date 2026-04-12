@@ -50,18 +50,6 @@ const Home = () => {
 		// setSearchList(newList);
 	};
 
-	const sortAZ = () => {
-		//... 是展開運算符，它將 data 數組中的所有元素展開並複製到一個新的數組中。
-		//localeCompare 是字符串的內建方法，用於比較兩個字符串的順序，並返回一個表示這兩個字符串相對順序的數值。這個數值可以用來判斷哪個字符串應該排在前面。
-		const sortedList = [...data].sort((a, b) => a.title.localeCompare(b.title));
-		setSearchList(sortedList);
-	};
-
-	function sortZA() {
-		const sortedList = [...data].sort((a, b) => b.title.localeCompare(a.title));
-		setSearchList(sortedList);
-	}
-
 	const handleFavoriteToggle = (book: projectDataType) => {
 		dispatch(toggleFavorite(book.id!));
 	};
@@ -257,8 +245,6 @@ const Home = () => {
 				<Col span={24} className="searchBar">
 					<SearchBar
 						onSearch={handleSearch}
-						onSortAZ={sortAZ}
-						onSortZA={sortZA}
 					/>
 				</Col>
 				<Col span={18} offset={3} style={{ minHeight: '100vh' }}>
