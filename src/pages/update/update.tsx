@@ -2,16 +2,17 @@ import React, { useEffect, useState } from "react";
 import Layout from "../../Layout";
 import { message } from "antd";
 import "./update.scss";
-import { getBookById, updateBookData } from "../../api/api";
+import { getBookById, getSectionsData, updateBookData } from "../../api/api";
 import { useParams, useNavigate } from "react-router-dom";
 import BookForm from "../../components/BookForm/bookForm";
 import { useAuth } from "../../context/authContext";
-import { projectDataType } from "../../assets/data";
+import { projectDataType, sectionDataType } from "../../assets/data";
 
 // Define a type for the book data
 const Update = () => {
   const { dataId } = useParams();
   const [book, setBook] = useState<projectDataType | null>(null);
+  const [sections, setSections] = useState<sectionDataType[]>([]);
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -20,9 +21,24 @@ const Update = () => {
     getBookById(dataId).then(setBook);
   }, [dataId]);
 
+  useEffect(() => {
+    async function fetchSections() {
+      try {
+        const sectionList = await getSectionsData();
+        setSections(sectionList);
+      } catch (error) {
+        console.error("載入區域失敗:", error);
+        message.error("區域載入失敗，請重新整理後再試");
+      }
+    }
+
+    fetchSections();
+  }, []);
+
   const [formData, setFormData] = useState({
     user_id: book?.user_id || "",
     id: book?.id || "",
+    section_id: book?.section_id || "__other__",
     image: book?.image || "",
     title: book?.title || "",
     body: book?.body || "",
@@ -34,6 +50,7 @@ const Update = () => {
     setFormData({
       user_id: book.user_id,
       id: book.id || "",
+      section_id: book.section_id || "__other__",
       image: book.image || "",
       title: book.title || "",
       body: book.body || "",
@@ -58,7 +75,11 @@ const Update = () => {
     }
 
     if (formData.title && formData.body) {
-      updateBookData(formData).then(()=>{
+      const payload = {
+        ...formData,
+        section_id: formData.section_id === "__other__" ? null : formData.section_id,
+      };
+      updateBookData(payload).then(()=>{
         message.success("更新成功");
         navigate(-1);
       });
@@ -89,12 +110,17 @@ const Update = () => {
       <BookForm
         formData={formData}
         onFormChange={handleChange}
+        onSectionChange={(value) =>
+          setFormData((prevData) => ({ ...prevData, section_id: value }))
+        }
         onSubmit={handleSubmit}
         onFileChange={
           handleFileChange as (
             e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
           ) => void
         }
+        sections={[{ id: "__other__", name: "其他" }, ...sections]}
+        showSectionSelector
         isUpdate
       />
     </Layout>

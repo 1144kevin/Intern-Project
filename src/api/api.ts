@@ -1,6 +1,6 @@
 import { PostgrestError } from '@supabase/supabase-js';
 import { publicSupabase, supabase } from './supabaseClient';
-import { commentDataType, projectDataType } from '../assets/data';
+import { commentDataType, projectDataType, sectionDataType } from '../assets/data';
 
 type RawCommentRow = {
 	id: string;
@@ -82,6 +82,66 @@ export async function getBookData(): Promise<projectDataType[]> {
 	}
 
 	return data || [];
+}
+
+export async function getSectionsData(): Promise<sectionDataType[]> {
+	const { data, error } = await publicSupabase
+		.from('sections')
+		.select('*')
+		.order('created_at', { ascending: true });
+
+	if (error) {
+		console.error('Error fetching sections:', error);
+		throw error;
+	}
+
+	return data || [];
+}
+
+export async function createSection(
+	name: string,
+	createdBy: string
+): Promise<sectionDataType> {
+	const { data, error } = await supabase
+		.from('sections')
+		.insert([{ name, created_by: createdBy }])
+		.select('*')
+		.single();
+
+	if (error) {
+		console.error('Error creating section:', error);
+		throw error;
+	}
+
+	return data as sectionDataType;
+}
+
+export async function updateSectionName(
+	sectionId: string,
+	name: string
+): Promise<sectionDataType> {
+	const { data, error } = await supabase
+		.from('sections')
+		.update({ name })
+		.eq('id', sectionId)
+		.select('*')
+		.single();
+
+	if (error) {
+		console.error('Error updating section:', error);
+		throw error;
+	}
+
+	return data as sectionDataType;
+}
+
+export async function deleteSection(sectionId: string): Promise<void> {
+	const { error } = await supabase.from('sections').delete().eq('id', sectionId);
+
+	if (error) {
+		console.error('Error deleting section:', error);
+		throw error;
+	}
 }
 
 export async function getBookById(id: string): Promise<projectDataType | null> {

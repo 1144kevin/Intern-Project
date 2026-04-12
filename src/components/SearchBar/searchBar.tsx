@@ -45,7 +45,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           style={{ transform: "scale(1.3)" }}
         />
        
-          <Button
+          {/* <Button
             type="primary"
             shape="round"
             size="middle"
@@ -53,10 +53,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
             className={isAZ ? "sort" : "sort__reverse"}
           >
             {isAZ ? "A-Z" : "Z-A"}
-          </Button>
+          </Button> */}
        
         <Search
-          placeholder="input search text"
+          placeholder="搜尋標題"
           allowClear
           onSearch={onSearch}
           style={{ width: 400}}

@@ -36,8 +36,7 @@ const Favorite = () => {
 	useEffect(() => {
 		const favorites = allBooks.filter((book) => favoriteIds.includes(book.id!));
 		setLocalFavorites(favorites);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [allBooks]);
+	}, [allBooks, favoriteIds]);
 
 	const handleFavoriteToggle = (book: projectDataType) => {
 		console.log(12);
@@ -52,7 +51,7 @@ const Favorite = () => {
 				}}
 			>
 				<Col span={24} className="title">
-					<h1>Favorite</h1>
+					<h1>收藏</h1>
 				</Col>
 				<Col span={16} offset={4} style={{ minHeight: '100vh' }}>
 					<BookList

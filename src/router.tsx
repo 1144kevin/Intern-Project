@@ -8,6 +8,7 @@ import Update from "./pages/update/update";
 import Login from "./pages/login/login";
 import Register from "./pages/register/register";
 import ProtectedRoute from "./components/ProtectedRoute/protectedRoute";
+import Profile from "./pages/profile/profile";
 
 export default function Router() {
 
@@ -47,6 +48,14 @@ export default function Router() {
           element={
             <ProtectedRoute>
               <Add />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />

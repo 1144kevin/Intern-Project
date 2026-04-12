@@ -3,6 +3,23 @@ import favoriteSlice from "./favoriteSlice";
 import themeSlice from "./themeSlice"; // Import the theme slice
 import commentSlice from "./commentSlice"; // Import the comment slice
 
+const FAVORITE_STORAGE_KEY = "favoriteBookIds";
+
+function loadFavoriteBookIds(): string[] {
+	try {
+		const raw = localStorage.getItem(FAVORITE_STORAGE_KEY);
+		if (!raw) return [];
+
+		const parsed: unknown = JSON.parse(raw);
+		if (!Array.isArray(parsed)) return [];
+
+		return parsed.filter((item): item is string => typeof item === "string");
+	} catch (error) {
+		console.error("Failed to load favoriteBookIds from localStorage:", error);
+		return [];
+	}
+}
+
 //將 store 看作是一個全局的狀態管理器，應用程序中的每一個 component 都可以從 store 中讀取數據或分派（dispatch）動作來修改數據。
 const store = configureStore({
 	//這些 reducer 用於響應分派的動作並更新 store 中的狀態。store 中的 book 狀態是由 favoriteSlice 來管理的
@@ -10,8 +27,22 @@ const store = configureStore({
     book: favoriteSlice,
 		theme: themeSlice, // Add the theme slice to the store
 		comment: commentSlice, // Add the comment slice to the store
-  }
+  },
+	preloadedState: {
+		book: {
+			bookIds: loadFavoriteBookIds(),
+		},
+	},
 })
+
+store.subscribe(() => {
+	try {
+		const favoriteBookIds = store.getState().book.bookIds;
+		localStorage.setItem(FAVORITE_STORAGE_KEY, JSON.stringify(favoriteBookIds));
+	} catch (error) {
+		console.error("Failed to save favoriteBookIds to localStorage:", error);
+	}
+});
 
 //創建了一個 RootState 類型，用於表示 Redux Store 中的整個狀態樹的類型。
 //ReturnType<typeof store.getState> 是 TypeScript 的一個工具，它會推斷出 store.getState 函數的返回值類型。

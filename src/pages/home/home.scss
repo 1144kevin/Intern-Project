@@ -14,3 +14,44 @@
 .ant-spin-dot-item {
   background-color: var(--spin-dot-color) !important;
 }
+
+.searchResult {
+  margin: 0 0 1rem;
+}
+
+.projectSection {
+  margin-bottom: 2.5rem;
+
+  &__title {
+    margin-bottom: .5rem;
+  }
+
+  &__divider {
+    height: 1px;
+    margin-bottom: 1.25rem;
+    background-color: rgba(0, 0, 0, .2);
+  }
+}
+
+.sectionFloatButtons {
+  > .ant-float-btn .ant-float-btn-body {
+    background-color: #ffd500 !important;
+    border: 1px solid #ffd500 !important;
+  }
+
+  .ant-float-btn-content {
+    color: #000 !important;
+  }
+
+  &__item {
+    .ant-float-btn-body {
+      background-color: #fff !important;
+      border: 1px solid #fff !important;
+    }
+
+    .ant-float-btn-body:hover {
+      background-color: #ffd500 !important;
+      border-color: #ffd500 !important;
+    }
+  }
+}

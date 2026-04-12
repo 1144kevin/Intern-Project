@@ -23,10 +23,18 @@ export interface commentDataType {
 export interface projectDataType {
 	id?: string;
 	user_id: string;
+	section_id?: string | null;
 	image: string;
 	title: string;
 	body: string;
 	created_at?: string;
 	updated_at?: string;
 	isFavorite?: boolean;
+}
+
+export interface sectionDataType {
+	id: string;
+	name: string;
+	created_by?: string | null;
+	created_at?: string;
 }
