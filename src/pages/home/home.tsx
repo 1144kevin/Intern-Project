@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Layout from '../../Layout';
 import SearchBar from '../../components/SearchBar/searchBar';
 import BookList from '../../components/BookList/bookList';
@@ -11,7 +11,11 @@ import { RootState } from '../../redux/store';
 import {
 	createSection,
 	deleteSection,
+	getBookDataCache,
 	getBookData,
+	isBookDataCacheFresh,
+	getSectionDataCache,
+	isSectionDataCacheFresh,
 	getSectionsData,
 	updateSectionName,
 } from '../../api/api';
@@ -19,11 +23,10 @@ import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useAuth } from '../../context/authContext';
 
 const Home = () => {
-	const [data, setData] = useState<projectDataType[]>([]);
-	const [sections, setSections] = useState<sectionDataType[]>([]);
+	const [data, setData] = useState<projectDataType[]>(() => getBookDataCache());
+	const [sections, setSections] = useState<sectionDataType[]>(() => getSectionDataCache());
 	const [search, setSearch] = useState('');
-	const [searchList, setSearchList] = useState<projectDataType[]>(data);
-	const [bookLoading, setBookLoading] = useState(false); //setBookLoading
+	const [bookLoading, setBookLoading] = useState(false);
 	const [sectionModalOpen, setSectionModalOpen] = useState(false);
 	const [newSectionName, setNewSectionName] = useState('');
 	const [creatingSection, setCreatingSection] = useState(false);
@@ -44,10 +47,6 @@ const Home = () => {
 
 	const handleSearch = (value: string) => {
 		setSearch(value);
-		// const newList = data.filter((book) =>
-		//   book?.title?.toLowerCase().includes(value.toLowerCase())
-		// );
-		// setSearchList(newList);
 	};
 
 	const handleFavoriteToggle = (book: projectDataType) => {
@@ -55,38 +54,63 @@ const Home = () => {
 	};
 
 	useEffect(() => {
+		const cachedBooks = getBookDataCache();
+		const cacheFresh = isBookDataCacheFresh();
+		const cachedSections = getSectionDataCache();
+		const sectionCacheFresh = isSectionDataCacheFresh();
+		if (cachedBooks.length > 0) {
+			setData(cachedBooks);
+		}
+		if (cachedSections.length > 0) {
+			setSections(cachedSections);
+		}
+
 		async function fetchBooks() {
 			try {
-				setBookLoading(true);
-				const [allBooks, allSections] = await Promise.all([
-					getBookData(),
-					getSectionsData(),
-				]);
+				if (cachedBooks.length === 0) {
+					setBookLoading(true);
+				}
+				const allBooks = await getBookData();
 				const sortedList = [...allBooks].sort((a, b) =>
 					a.title.localeCompare(b.title)
 				);
-				setSearchList(sortedList);
 				setData(sortedList);
-				setSections(allSections);
 			} catch (error) {
 				console.error('Failed to fetch books on home page:', error);
-				message.error('首頁資料載入失敗，請重新整理後再試');
-				setSearchList([]);
-				setData([]);
-				setSections([]);
+				if (cachedBooks.length === 0) {
+					message.error('首頁資料載入失敗，請重新整理後再試');
+					setData([]);
+				}
 			} finally {
 				setBookLoading(false);
 			}
 		}
-		fetchBooks();
+
+		async function fetchSections() {
+			try {
+				const allSections = await getSectionsData();
+				setSections(allSections);
+			} catch (error) {
+				console.error('Failed to fetch sections on home page:', error);
+				setSections([]);
+			}
+		}
+
+		if (!cacheFresh) {
+			fetchBooks();
+		}
+		if (!sectionCacheFresh) {
+			fetchSections();
+		}
 	}, []);
 
-	useEffect(() => {
-		const filteredList = data.filter((book) =>
-			book?.title?.toLowerCase().includes(search.toLowerCase())
-		);
-		setSearchList(filteredList);
-	}, [search, data]);
+	const filteredBooks = useMemo(
+		() =>
+			data.filter((book) =>
+				book?.title?.toLowerCase().includes(search.toLowerCase())
+			),
+		[data, search]
+	);
 
 	// Set the CSS variable for spin dot color
 	useEffect(() => {
@@ -98,10 +122,10 @@ const Home = () => {
 
 	const groupedSections = sections.map((section) => ({
 		...section,
-		books: searchList.filter((book) => book.section_id === section.id),
+		books: filteredBooks.filter((book) => book.section_id === section.id),
 	}));
 
-	const otherSectionBooks = searchList.filter((book) => !book.section_id);
+	const otherSectionBooks = filteredBooks.filter((book) => !book.section_id);
 	const dividerColor = isDarkMode
 		? 'rgba(255, 255, 255, 0.28)'
 		: 'rgba(0, 0, 0, 0.2)';
@@ -248,13 +272,13 @@ const Home = () => {
 					/>
 				</Col>
 				<Col span={18} offset={3} style={{ minHeight: '100vh' }}>
-					{bookLoading ? (
+					{bookLoading && data.length === 0 ? (
 						<Spin size="large" className="loading" />
 					) : (
 						<>
 							{search && (
 								<h2 className="searchResult">
-									找到{searchList.length}筆與{search}有關
+									找到{filteredBooks.length}筆與{search}有關
 								</h2>
 							)}
 
@@ -283,9 +307,9 @@ const Home = () => {
 									handleFavorite={handleFavoriteToggle}
 								/>
 							</section>
-							{groupedSections.length === 0 && otherSectionBooks.length === 0 && (
-								<h2 className="searchResult">目前還沒有區域與專案，請先新增區域。</h2>
-							)}
+							{!bookLoading && filteredBooks.length === 0 && (
+									<h2 className="searchResult">目前還沒有區域與專案，請先新增區域。</h2>
+								)}
 						</>
 					)}
 				</Col>

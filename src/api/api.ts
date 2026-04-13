@@ -13,6 +13,70 @@ type RawCommentRow = {
 	updated_at?: string;
 };
 
+let bookMemoryCache: projectDataType[] = [];
+let bookMemoryCacheAt = 0;
+const BOOK_CACHE_TTL = 60 * 1000;
+let sectionMemoryCache: sectionDataType[] = [];
+let sectionMemoryCacheAt = 0;
+const SECTION_CACHE_TTL = 60 * 1000;
+
+export function getBookDataCache(): projectDataType[] {
+	return bookMemoryCache;
+}
+
+export function isBookDataCacheFresh(): boolean {
+	return (
+		bookMemoryCache.length > 0 &&
+		Date.now() - bookMemoryCacheAt < BOOK_CACHE_TTL
+	);
+}
+
+export function invalidateBookDataCache() {
+	bookMemoryCache = [];
+	bookMemoryCacheAt = 0;
+}
+
+function setBookDataCache(books: projectDataType[]) {
+	bookMemoryCache = books;
+	bookMemoryCacheAt = Date.now();
+}
+
+export function getSectionDataCache(): sectionDataType[] {
+	return sectionMemoryCache;
+}
+
+export function isSectionDataCacheFresh(): boolean {
+	return (
+		sectionMemoryCache.length > 0 &&
+		Date.now() - sectionMemoryCacheAt < SECTION_CACHE_TTL
+	);
+}
+
+function setSectionDataCache(sections: sectionDataType[]) {
+	sectionMemoryCache = sections;
+	sectionMemoryCacheAt = Date.now();
+}
+
+async function withRetry<T>(
+	operation: () => Promise<T>,
+	retryTimes = 2,
+	delayMs = 350
+): Promise<T> {
+	let lastError: unknown;
+
+	for (let attempt = 0; attempt <= retryTimes; attempt += 1) {
+		try {
+			return await operation();
+		} catch (error) {
+			lastError = error;
+			if (attempt === retryTimes) break;
+			await new Promise((resolve) => setTimeout(resolve, delayMs));
+		}
+	}
+
+	throw lastError;
+}
+
 async function attachProfiles(rows: RawCommentRow[] | null): Promise<commentDataType[]> {
 	if (!rows || rows.length === 0) return [];
 
@@ -67,35 +131,43 @@ export async function uploadImage(file: File): Promise<string> {
 }
 
 export async function getBookData(): Promise<projectDataType[]> {
-	const {
-		data,
-		error,
-	}: { data: projectDataType[] | null; error: PostgrestError | null } =
-		await publicSupabase
-			.from('projects')
-			.select('*')
-			.order('created_at', { ascending: false });
+	return withRetry(async () => {
+		const {
+			data,
+			error,
+		}: { data: projectDataType[] | null; error: PostgrestError | null } =
+			await publicSupabase
+				.from('projects')
+				.select('*')
+				.order('created_at', { ascending: false });
 
-	if (error) {
-		console.error('Error fetching project data:', error);
-		throw error;
-	}
+		if (error) {
+			console.error('Error fetching project data:', error);
+			throw error;
+		}
 
-	return data || [];
+		const books = data || [];
+		setBookDataCache(books);
+		return books;
+	});
 }
 
 export async function getSectionsData(): Promise<sectionDataType[]> {
-	const { data, error } = await publicSupabase
-		.from('sections')
-		.select('*')
-		.order('created_at', { ascending: true });
+	return withRetry(async () => {
+		const { data, error } = await publicSupabase
+			.from('sections')
+			.select('*')
+			.order('created_at', { ascending: true });
 
-	if (error) {
-		console.error('Error fetching sections:', error);
-		throw error;
-	}
+		if (error) {
+			console.error('Error fetching sections:', error);
+			throw error;
+		}
 
-	return data || [];
+		const sections = data || [];
+		setSectionDataCache(sections);
+		return sections;
+	});
 }
 
 export async function createSection(
@@ -171,6 +243,7 @@ export async function deleteBookData(id: string): Promise<projectDataType[]> {
 		throw error;
 	}
 
+	invalidateBookDataCache();
 	return data || [];
 }
 
@@ -188,6 +261,7 @@ export async function addBookData(
 		throw error;
 	}
 
+	invalidateBookDataCache();
 	return data || [];
 }
 
@@ -213,6 +287,7 @@ export async function updateBookData(
 		throw error;
 	}
 
+	invalidateBookDataCache();
 	return data || [];
 }
 
